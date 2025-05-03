@@ -32,11 +32,23 @@ namespace TP.ConcurrentProgramming.Data
         throw new ObjectDisposedException(nameof(DataImplementation));
       if (upperLayerHandler == null)
         throw new ArgumentNullException(nameof(upperLayerHandler));
+      if (numberOfBalls <= 0)
+        throw new ArgumentException("Number of balls must be greater than 0", nameof(numberOfBalls));
+
       Random random = new Random();
       for (int i = 0; i < numberOfBalls; i++)
       {
-        Vector startingPosition = new(random.Next(100, 400 - 100), random.Next(100, 400 - 100));
-        Ball newBall = new(startingPosition, startingPosition);
+        // Create balls with random positions within the table boundaries
+        double x = random.Next(50, 350); // Keep some margin from the edges
+        double y = random.Next(50, 350);
+        Vector startingPosition = new(x, y);
+        
+        // Create initial velocity
+        double vx = (random.NextDouble() - 0.5) * 5; // Random velocity between -2.5 and 2.5
+        double vy = (random.NextDouble() - 0.5) * 5;
+        Vector initialVelocity = new(vx, vy);
+        
+        Ball newBall = new(startingPosition, initialVelocity);
         upperLayerHandler(startingPosition, newBall);
         BallsList.Add(newBall);
       }

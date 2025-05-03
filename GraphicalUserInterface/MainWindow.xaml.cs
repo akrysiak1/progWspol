@@ -20,12 +20,27 @@ namespace TP.ConcurrentProgramming.PresentationView
   {
     public MainWindow()
     {
-      Random random = new Random();
       InitializeComponent();
-      MainWindowViewModel viewModel = (MainWindowViewModel)DataContext;
-      double screenWidth = SystemParameters.PrimaryScreenWidth;
-      double screenHeight = SystemParameters.PrimaryScreenHeight;
-      viewModel.Start(random.Next(5, 10));
+    }
+
+    private void StartButton_Click(object sender, RoutedEventArgs e)
+    {
+      if (int.TryParse(BallCountTextBox.Text, out int numberOfBalls))
+      {
+        if (numberOfBalls > 0 && numberOfBalls <= 20)
+        {
+          MainWindowViewModel viewModel = (MainWindowViewModel)DataContext;
+          viewModel.Start(numberOfBalls);
+        }
+        else
+        {
+          MessageBox.Show("Please enter a number between 1 and 20.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+      }
+      else
+      {
+        MessageBox.Show("Please enter a valid number.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
+      }
     }
 
     /// <summary>
