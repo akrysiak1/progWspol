@@ -31,6 +31,7 @@ namespace TP.ConcurrentProgramming.PresentationView
         {
           MainWindowViewModel viewModel = (MainWindowViewModel)DataContext;
           viewModel.Start(numberOfBalls);
+          StartButton.IsEnabled = false;
         }
         else
         {
