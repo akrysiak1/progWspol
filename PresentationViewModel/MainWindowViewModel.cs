@@ -15,7 +15,7 @@ using ModelIBall = TP.ConcurrentProgramming.Presentation.Model.IBall;
 
 namespace TP.ConcurrentProgramming.Presentation.ViewModel
 {
-  public class MainWindowViewModel : ViewModelBase, IDisposable
+  public abstract class MainWindowViewModel : ViewModelBase, IDisposable
   {
     #region ctor
 
@@ -80,5 +80,10 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
     private bool Disposed = false;
 
     #endregion private
+  }
+
+  public class ConcreteMainWindowViewModel : MainWindowViewModel
+  {
+    public ConcreteMainWindowViewModel() : base() { }
   }
 }

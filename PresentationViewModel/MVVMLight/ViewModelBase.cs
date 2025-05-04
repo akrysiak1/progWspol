@@ -12,7 +12,7 @@ using System.Runtime.CompilerServices;
 
 namespace TP.ConcurrentProgramming.Presentation.ViewModel.MVVMLight
 {
-  public class ViewModelBase : INotifyPropertyChanged
+  public abstract class ViewModelBase : INotifyPropertyChanged
   {
     #region INotifyPropertyChanged
 

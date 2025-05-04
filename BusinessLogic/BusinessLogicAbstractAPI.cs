@@ -23,7 +23,7 @@ namespace TP.ConcurrentProgramming.BusinessLogic
 
     #region Layer API
 
-    public static readonly Dimensions GetDimensions = new(10.0, 10.0, 10.0);
+    public static readonly Dimensions GetDimensions = new ConcreteDimensions(10.0, 10.0, 10.0);
 
     public abstract void Start(int numberOfBalls, Action<IPosition, IBall> upperLayerHandler);
 
@@ -50,7 +50,13 @@ namespace TP.ConcurrentProgramming.BusinessLogic
   /// <remarks>
   /// Must be abstract
   /// </remarks>
-  public record Dimensions(double BallDimension, double TableHeight, double TableWidth);
+  public abstract record Dimensions(double BallDimension, double TableHeight, double TableWidth);
+
+  internal record ConcreteDimensions : Dimensions
+  {
+    public ConcreteDimensions(double BallDimension, double TableHeight, double TableWidth) 
+      : base(BallDimension, TableHeight, TableWidth) { }
+  }
 
   public interface IPosition
   {

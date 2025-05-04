@@ -20,7 +20,7 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel.MVVMLight
   /// Execute and CanExecute callback methods.
   /// </summary>
   /// <remarks>The <see cref="CommandManager"/>handles automatic enabling/disabling of controls based on the CanExecute delegate.</remarks>
-  public class RelayCommand : ICommand
+  public abstract class RelayCommand : ICommand
   {
     #region constructors
 

@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Bouncing Balls" Height="500" Width="500">
     <Window.DataContext>
-        <vm:MainWindowViewModel />
+        <vm:ConcreteMainWindowViewModel />
     </Window.DataContext>
     <Grid>
         <Grid.RowDefinitions>
