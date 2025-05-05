@@ -85,5 +85,6 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
   public class ConcreteMainWindowViewModel : MainWindowViewModel
   {
     public ConcreteMainWindowViewModel() : base() { }
+    internal ConcreteMainWindowViewModel(ModelAbstractApi modelLayerAPI) : base(modelLayerAPI) { }
   }
 }

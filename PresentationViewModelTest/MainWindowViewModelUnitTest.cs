@@ -27,7 +27,7 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel.Test
       Assert.AreEqual<int>(0, nullModelFixture.Disposed);
       Assert.AreEqual<int>(0, nullModelFixture.Started);
       Assert.AreEqual<int>(0, nullModelFixture.Subscribed);
-      using (MainWindowViewModel viewModel = new(nullModelFixture))
+      using (ConcreteMainWindowViewModel viewModel = new(nullModelFixture))
       {
         Random random = new Random();
         int numberOfBalls = random.Next(1, 10);
@@ -44,7 +44,7 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel.Test
     public void BehaviorTestMethod()
     {
       ModelSimulatorFixture modelSimulator = new();
-      MainWindowViewModel viewModel = new(modelSimulator);
+      ConcreteMainWindowViewModel viewModel = new(modelSimulator);
       Assert.IsNotNull(viewModel.Balls);
       Assert.AreEqual<int>(0, viewModel.Balls.Count);
       Random random = new Random();
