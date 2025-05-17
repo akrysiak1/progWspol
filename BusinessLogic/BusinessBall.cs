@@ -12,6 +12,10 @@ namespace TP.ConcurrentProgramming.BusinessLogic
 {
   internal class Ball : IBall
   {
+    private const double BORDER_WIDTH = 400;
+    private const double BORDER_HEIGHT = 420;
+    private const double BALL_RADIUS = 20;
+
     public Ball(Data.IBall ball)
     {
       ball.NewPositionNotification += RaisePositionChangeEvent;
@@ -27,7 +31,29 @@ namespace TP.ConcurrentProgramming.BusinessLogic
 
     private void RaisePositionChangeEvent(object? sender, Data.IVector e)
     {
-      NewPositionNotification?.Invoke(this, new Position(e.x, e.y));
+      double newX = e.x;
+      double newY = e.y;
+
+      // Check for border collisions and adjust position if needed
+      if (newX - BALL_RADIUS < 0)
+      {
+        newX = BALL_RADIUS;
+      }
+      else if (newX + BALL_RADIUS > BORDER_WIDTH)
+      {
+        newX = BORDER_WIDTH - BALL_RADIUS;
+      }
+
+      if (newY - BALL_RADIUS < 0)
+      {
+        newY = BALL_RADIUS;
+      }
+      else if (newY + BALL_RADIUS > BORDER_HEIGHT)
+      {
+        newY = BORDER_HEIGHT - BALL_RADIUS;
+      }
+
+      NewPositionNotification?.Invoke(this, new Position(newX, newY));
     }
 
     #endregion private

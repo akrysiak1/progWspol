@@ -86,10 +86,6 @@ namespace TP.ConcurrentProgramming.Data
 
         //private bool disposedValue;
         private bool Disposed = false;
-        private const double BORDER_WIDTH = 400;
-        private const double BORDER_HEIGHT = 420;
-        private const double BALL_RADIUS = 20; // Assuming ball diameter is 40 based on the XAML
-
         private readonly Timer MoveTimer;
         private Random RandomGenerator = new();
         private List<Ball> BallsList = [];
@@ -107,25 +103,6 @@ namespace TP.ConcurrentProgramming.Data
                 // Calculate new position
                 double newX = currentPosition.x + randomX;
                 double newY = currentPosition.y + randomY;
-
-                // Check for border collisions and adjust position if needed
-                if (newX - BALL_RADIUS < 0)
-                {
-                    newX = BALL_RADIUS;
-                }
-                else if (newX + BALL_RADIUS > BORDER_WIDTH)
-                {
-                    newX = BORDER_WIDTH - BALL_RADIUS;
-                }
-
-                if (newY - BALL_RADIUS < 0)
-                {
-                    newY = BALL_RADIUS;
-                }
-                else if (newY + BALL_RADIUS > BORDER_HEIGHT)
-                {
-                    newY = BORDER_HEIGHT - BALL_RADIUS;
-                }
 
                 // Move the ball to the new position
                 item.Move(new Vector(newX - currentPosition.x, newY - currentPosition.y));
