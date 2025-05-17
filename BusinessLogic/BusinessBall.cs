@@ -15,9 +15,12 @@ namespace TP.ConcurrentProgramming.BusinessLogic
     private const double BORDER_WIDTH = 400;
     private const double BORDER_HEIGHT = 420;
     private const double BALL_RADIUS = 20;
+    private readonly object lockObject = new object();
+    private readonly Data.IBall dataBall;
 
     public Ball(Data.IBall ball)
     {
+      dataBall = ball;
       ball.NewPositionNotification += RaisePositionChangeEvent;
     }
 
@@ -31,29 +34,36 @@ namespace TP.ConcurrentProgramming.BusinessLogic
 
     private void RaisePositionChangeEvent(object? sender, Data.IVector e)
     {
-      double newX = e.x;
-      double newY = e.y;
+      lock (lockObject)
+      {
+        double newX = e.x;
+        double newY = e.y;
 
-      // Check for border collisions and adjust position if needed
-      if (newX - BALL_RADIUS < 0)
-      {
-        newX = BALL_RADIUS;
-      }
-      else if (newX + BALL_RADIUS > BORDER_WIDTH)
-      {
-        newX = BORDER_WIDTH - BALL_RADIUS;
-      }
+        // Check for border collisions and adjust position if needed
+        if (newX - BALL_RADIUS < 0)
+        {
+          newX = BALL_RADIUS;
+          dataBall.Velocity = new Data.Vector(-dataBall.Velocity.x, dataBall.Velocity.y);
+        }
+        else if (newX + BALL_RADIUS > BORDER_WIDTH)
+        {
+          newX = BORDER_WIDTH - BALL_RADIUS;
+          dataBall.Velocity = new Data.Vector(-dataBall.Velocity.x, dataBall.Velocity.y);
+        }
 
-      if (newY - BALL_RADIUS < 0)
-      {
-        newY = BALL_RADIUS;
-      }
-      else if (newY + BALL_RADIUS > BORDER_HEIGHT)
-      {
-        newY = BORDER_HEIGHT - BALL_RADIUS;
-      }
+        if (newY - BALL_RADIUS < 0)
+        {
+          newY = BALL_RADIUS;
+          dataBall.Velocity = new Data.Vector(dataBall.Velocity.x, -dataBall.Velocity.y);
+        }
+        else if (newY + BALL_RADIUS > BORDER_HEIGHT)
+        {
+          newY = BORDER_HEIGHT - BALL_RADIUS;
+          dataBall.Velocity = new Data.Vector(dataBall.Velocity.x, -dataBall.Velocity.y);
+        }
 
-      NewPositionNotification?.Invoke(this, new Position(newX, newY));
+        NewPositionNotification?.Invoke(this, new Position(newX, newY));
+      }
     }
 
     #endregion private

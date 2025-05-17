@@ -19,7 +19,6 @@ namespace TP.ConcurrentProgramming.Data
 
         public DataImplementation()
         {
-            MoveTimer = new Timer(Move, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(100));
         }
 
         #endregion ctor
@@ -64,7 +63,6 @@ namespace TP.ConcurrentProgramming.Data
             {
                 if (disposing)
                 {
-                    MoveTimer.Dispose();
                     BallsList.Clear();
                 }
                 Disposed = true;
@@ -84,30 +82,8 @@ namespace TP.ConcurrentProgramming.Data
 
         #region private
 
-        //private bool disposedValue;
         private bool Disposed = false;
-        private readonly Timer MoveTimer;
-        private Random RandomGenerator = new();
-        private List<Ball> BallsList = [];
-
-        private void Move(object? x)
-        {
-            foreach (Ball item in BallsList)
-            {
-                IVector currentPosition = item.Position;
-
-                // Generate random movement
-                double randomX = (RandomGenerator.NextDouble() - 0.5) * 10;
-                double randomY = (RandomGenerator.NextDouble() - 0.5) * 10;
-
-                // Calculate new position
-                double newX = currentPosition.x + randomX;
-                double newY = currentPosition.y + randomY;
-
-                // Move the ball to the new position
-                item.Move(new Vector(newX - currentPosition.x, newY - currentPosition.y));
-            }
-        }
+        private readonly List<IBall> BallsList = new List<IBall>();
 
         #endregion private
 

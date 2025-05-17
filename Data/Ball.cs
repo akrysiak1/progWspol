@@ -18,6 +18,7 @@ namespace TP.ConcurrentProgramming.Data
         {
             Position = initialPosition;
             Velocity = initialVelocity;
+            MoveTimer = new Timer(Move, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(16)); // ~60 FPS
         }
 
         #endregion ctor
@@ -33,14 +34,16 @@ namespace TP.ConcurrentProgramming.Data
 
         #region private
 
+        private readonly Timer MoveTimer;
+
         private void RaiseNewPositionChangeNotification()
         {
             NewPositionNotification?.Invoke(this, Position);
         }
 
-        internal void Move(Vector delta)
+        private void Move(object? state)
         {
-            Position = new Vector(Position.x + delta.x, Position.y + delta.y);
+            Position = new Vector(Position.x + Velocity.x, Position.y + Velocity.y);
             RaiseNewPositionChangeNotification();
         }
 
