@@ -63,6 +63,13 @@ namespace TP.ConcurrentProgramming.Data
             {
                 if (disposing)
                 {
+                    foreach (var ball in BallsList)
+                    {
+                        if (ball is Ball concreteBall)
+                        {
+                            concreteBall.Stop();
+                        }
+                    }
                     BallsList.Clear();
                 }
                 Disposed = true;

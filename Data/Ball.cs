@@ -8,6 +8,9 @@
 //
 //_____________________________________________________________________________________________________________________________________
 
+using System;
+using System.Threading;
+
 namespace TP.ConcurrentProgramming.Data
 {
     internal class Ball : IBall
@@ -18,7 +21,10 @@ namespace TP.ConcurrentProgramming.Data
         {
             Position = initialPosition;
             Velocity = initialVelocity;
-            MoveTimer = new Timer(Move, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(16)); // ~60 FPS
+            _isRunning = true;
+            _moveThread = new Thread(Move);
+            _moveThread.IsBackground = true;
+            _moveThread.Start();
         }
 
         #endregion ctor
@@ -34,17 +40,48 @@ namespace TP.ConcurrentProgramming.Data
 
         #region private
 
-        private readonly Timer MoveTimer;
+        private readonly Thread _moveThread;
+        private bool _isRunning;
+        private readonly object _lockObject = new object();
+        private const double BASE_REFRESH_RATE = 60.0; // Base refresh rate in Hz
+        private const double MIN_SLEEP_TIME = 5; // Minimum sleep time in ms
+        private const double MAX_SLEEP_TIME = 50; // Maximum sleep time in ms
 
         private void RaiseNewPositionChangeNotification()
         {
             NewPositionNotification?.Invoke(this, Position);
         }
 
-        private void Move(object? state)
+        private double CalculateSleepTime()
         {
-            Position = new Vector(Position.x + Velocity.x, Position.y + Velocity.y);
-            RaiseNewPositionChangeNotification();
+            // Calculate the magnitude of velocity
+            double speed = Math.Sqrt(Velocity.x * Velocity.x + Velocity.y * Velocity.y);
+            
+            // Calculate sleep time inversely proportional to speed
+            // Faster balls will have shorter sleep time (higher refresh rate)
+            double sleepTime = MAX_SLEEP_TIME - (speed * (MAX_SLEEP_TIME - MIN_SLEEP_TIME) / 5.0);
+            
+            // Ensure sleep time stays within bounds
+            return Math.Max(MIN_SLEEP_TIME, Math.Min(MAX_SLEEP_TIME, sleepTime));
+        }
+
+        private void Move()
+        {
+            while (_isRunning)
+            {
+                lock (_lockObject)
+                {
+                    Position = new Vector(Position.x + Velocity.x, Position.y + Velocity.y);
+                    RaiseNewPositionChangeNotification();
+                }
+                Thread.Sleep((int)CalculateSleepTime());
+            }
+        }
+
+        public void Stop()
+        {
+            _isRunning = false;
+            _moveThread.Join();
         }
 
         #endregion private
