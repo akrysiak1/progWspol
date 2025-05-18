@@ -103,29 +103,58 @@ namespace TP.ConcurrentProgramming.BusinessLogic
                         double nx = dx / distance;
                         double ny = dy / distance;
 
-                        // Relative velocity
+                        // Calculate relative velocity
                         double dvx = dataBall.Velocity.x - otherBall.dataBall.Velocity.x;
                         double dvy = dataBall.Velocity.y - otherBall.dataBall.Velocity.y;
 
-                        // Relative velocity along normal
+                        // Calculate relative velocity along normal
                         double velocityAlongNormal = dvx * nx + dvy * ny;
 
                         // Ignore if balls moving away
                         if (velocityAlongNormal > 0) continue;
 
-                        // Impulse scalar (elastic collision)
-                        double j = -(1 + 1) * velocityAlongNormal / 2;
+                        // Calculate impulse with energy conservation
+                        double restitution = 1.0; // Perfectly elastic collision
+                        double j = -(1 + restitution) * velocityAlongNormal;
 
-                        // Apply impulse
-                        dataBall.Velocity = new Data.Vector(
-                            dataBall.Velocity.x + j * nx,
-                            dataBall.Velocity.y + j * ny
-                        );
+                        // Calculate new velocities while preserving total momentum and energy
+                        double totalMass = 2.0; // Assuming equal masses
+                        double impulseX = j * nx / totalMass;
+                        double impulseY = j * ny / totalMass;
 
-                        otherBall.dataBall.Velocity = new Data.Vector(
-                            otherBall.dataBall.Velocity.x - j * nx,
-                            otherBall.dataBall.Velocity.y - j * ny
-                        );
+                        // Apply impulse with energy conservation
+                        double newVx1 = dataBall.Velocity.x + impulseX;
+                        double newVy1 = dataBall.Velocity.y + impulseY;
+                        double newVx2 = otherBall.dataBall.Velocity.x - impulseX;
+                        double newVy2 = otherBall.dataBall.Velocity.y - impulseY;
+
+                        // Calculate speed before collision
+                        double speed1Before = Math.Sqrt(dataBall.Velocity.x * dataBall.Velocity.x + 
+                                                      dataBall.Velocity.y * dataBall.Velocity.y);
+                        double speed2Before = Math.Sqrt(otherBall.dataBall.Velocity.x * otherBall.dataBall.Velocity.x + 
+                                                      otherBall.dataBall.Velocity.y * otherBall.dataBall.Velocity.y);
+
+                        // Calculate speed after collision
+                        double speed1After = Math.Sqrt(newVx1 * newVx1 + newVy1 * newVy1);
+                        double speed2After = Math.Sqrt(newVx2 * newVx2 + newVy2 * newVy2);
+
+                        // Calculate total energy before and after
+                        double energyBefore = speed1Before * speed1Before + speed2Before * speed2Before;
+                        double energyAfter = speed1After * speed1After + speed2After * speed2After;
+
+                        // If energy increased, scale down the velocities
+                        if (energyAfter > energyBefore)
+                        {
+                            double scale = Math.Sqrt(energyBefore / energyAfter);
+                            newVx1 *= scale;
+                            newVy1 *= scale;
+                            newVx2 *= scale;
+                            newVy2 *= scale;
+                        }
+
+                        // Apply the new velocities
+                        dataBall.Velocity = new Data.Vector(newVx1, newVy1);
+                        otherBall.dataBall.Velocity = new Data.Vector(newVx2, newVy2);
 
                         // Separate balls slightly to avoid overlap
                         double overlap = 2 * VISUAL_RADIUS - distance;

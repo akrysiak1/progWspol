@@ -38,13 +38,18 @@ namespace TP.ConcurrentProgramming.Data
             for (int i = 0; i < numberOfBalls; i++)
             {
                 // Create balls with random positions within the table boundaries
-                double x = random.Next(50, 350); // Keep some margin from the edges
+                double x = random.Next(50, 350); 
                 double y = random.Next(50, 350);
                 Vector startingPosition = new(x, y);
 
-                // Create initial velocity
-                double vx = (random.NextDouble() - 0.5) * 5; // Random velocity between -2.5 and 2.5
-                double vy = (random.NextDouble() - 0.5) * 5;
+                // Create initial velocity with more variation
+                double speedMultiplier = random.NextDouble() < 0.3 ? 2 :
+                                       random.NextDouble() < 0.5 ? 1.8 :
+                                       1.5;
+                
+                double angle = random.NextDouble() * 2 * Math.PI;
+                double vx = Math.Cos(angle) * speedMultiplier;
+                double vy = Math.Sin(angle) * speedMultiplier;
                 Vector initialVelocity = new(vx, vy);
 
                 Ball newBall = new(startingPosition, initialVelocity);
@@ -80,7 +85,6 @@ namespace TP.ConcurrentProgramming.Data
 
         public override void Dispose()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }

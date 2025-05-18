@@ -54,13 +54,10 @@ namespace TP.ConcurrentProgramming.Data
 
         private double CalculateSleepTime()
         {
-            // Calculate the magnitude of velocity
             double speed = Math.Sqrt(Velocity.x * Velocity.x + Velocity.y * Velocity.y);
             
-            // Calculate sleep time inversely proportional to speed
             // Faster balls will have shorter sleep time (higher refresh rate)
             double sleepTime = MAX_SLEEP_TIME - (speed * (MAX_SLEEP_TIME - MIN_SLEEP_TIME) / 5.0);
-            
             // Ensure sleep time stays within bounds
             return Math.Max(MIN_SLEEP_TIME, Math.Min(MAX_SLEEP_TIME, sleepTime));
         }

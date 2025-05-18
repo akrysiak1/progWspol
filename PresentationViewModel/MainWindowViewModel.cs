@@ -91,19 +91,17 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
     private void CalculateBorderSize()
     {
       // Calculate the maximum square size that fits in the window
-      // We need to account for the top panel height, margins, and border thickness
       const double TOP_PANEL_HEIGHT = 60;  // Height of the top panel
       const double MARGIN = 40;           // General margin
-      const double BORDER_THICKNESS = 8;  // Total border thickness (4px on each side)
+      const double BORDER_THICKNESS = 8;   // Total border thickness (4px on each side)
       const double EXTRA_PADDING = 20;    // Additional padding to ensure visibility
       
       double availableHeight = _windowHeight - TOP_PANEL_HEIGHT - MARGIN - BORDER_THICKNESS - EXTRA_PADDING;
       double availableWidth = _windowWidth - MARGIN - BORDER_THICKNESS - EXTRA_PADDING;
       
-      // Take the minimum of width and height to ensure we get a square
       double maxSize = Math.Min(availableWidth, availableHeight);
       
-      // Ensure we don't go below a minimum size
+      // Don't go below a minimum size
       BorderSize = Math.Max(400, maxSize);
 
       // Update the physical border size through the business logic layer
