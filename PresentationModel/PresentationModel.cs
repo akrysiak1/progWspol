@@ -51,6 +51,7 @@ namespace TP.ConcurrentProgramming.Presentation.Model
 
     public override void UpdateBorderSize(double size)
     {
+      ModelBall.UpdateBorderSize(size);
       layerBellow.UpdateBorderSize(size);
     }
 
@@ -70,7 +71,7 @@ namespace TP.ConcurrentProgramming.Presentation.Model
 
     private void StartHandler(BusinessLogic.IPosition position, BusinessLogic.IBall ball)
     {
-      ModelBall newBall = new ModelBall(position.x, position.y, ball) { Diameter = 20.0 };
+      ModelBall newBall = new ModelBall(position.x, position.y, ball);
       BallChanged.Invoke(this, new BallChaneEventArgs() { Ball = newBall });
     }
 

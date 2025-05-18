@@ -48,7 +48,7 @@ namespace TP.ConcurrentProgramming.BusinessLogic
 
     public override void UpdateBorderSize(double size)
     {
-      Ball.SetBorderSize(size);
+      Ball.SetBorderSize(size-8);
     }
 
     #endregion BusinessLogicAbstractAPI

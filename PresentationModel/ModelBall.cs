@@ -14,17 +14,32 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using TP.ConcurrentProgramming.BusinessLogic;
 using LogicIBall = TP.ConcurrentProgramming.BusinessLogic.IBall;
+using System.Collections.Generic;
 
 namespace TP.ConcurrentProgramming.Presentation.Model
 {
     internal class ModelBall : IBall
     {
+        private static double _borderSize = 400;
+        private const double DIAMETER_RATIO = 0.05; // Diameter will be 5% of border size (2x radius)
+        private static readonly List<ModelBall> AllBalls = new List<ModelBall>();
+
+        public static void UpdateBorderSize(double size)
+        {
+            _borderSize = size;
+            foreach (var ball in AllBalls)
+            {
+                ball.Diameter = _borderSize * DIAMETER_RATIO;
+            }
+        }
+
         public ModelBall(double top, double left, LogicIBall underneathBall)
         {
-            Diameter = 20; // Ustaw średnicę raz na zawsze
+            Diameter = _borderSize * DIAMETER_RATIO;
             TopBackingField = top;
             LeftBackingField = left;
             underneathBall.NewPositionNotification += NewPositionNotification;
+            AllBalls.Add(this);
         }
 
         #region IBall
@@ -53,7 +68,19 @@ namespace TP.ConcurrentProgramming.Presentation.Model
             }
         }
 
-        public double Diameter { get; init; }
+        private double _diameter;
+        public double Diameter
+        {
+            get => _diameter;
+            set
+            {
+                if (_diameter != value)
+                {
+                    _diameter = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
 
         #region INotifyPropertyChanged
 

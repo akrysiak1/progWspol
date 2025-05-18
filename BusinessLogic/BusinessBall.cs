@@ -14,8 +14,9 @@ namespace TP.ConcurrentProgramming.BusinessLogic
     {
         private static double BORDER_WIDTH = 400;
         private static double BORDER_HEIGHT = 420;
-        private const double BALL_RADIUS = 10;
-        private const double VISUAL_RADIUS = 10; // Used for drawing
+        private const double BALL_RADIUS_RATIO = 0.025; // Ball radius will be 2.5% of border size
+        private static double BALL_RADIUS => BORDER_WIDTH * BALL_RADIUS_RATIO;
+        private static double VISUAL_RADIUS => BALL_RADIUS; // Used for drawing
         private readonly object lockObject = new object();
         private readonly Data.IBall dataBall;
         private static readonly List<Ball> AllBalls = new List<Ball>();
