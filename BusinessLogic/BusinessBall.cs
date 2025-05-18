@@ -27,6 +27,11 @@ namespace TP.ConcurrentProgramming.BusinessLogic
             BORDER_HEIGHT = size;
         }
 
+        public static double GetBallRadius()
+        {
+            return BALL_RADIUS;
+        }
+
         public Ball(Data.IBall ball)
         {
             dataBall = ball;

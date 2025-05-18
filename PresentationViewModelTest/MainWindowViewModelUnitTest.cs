@@ -80,6 +80,11 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel.Test
         Started = numberOfBalls;
       }
 
+      public override void UpdateBorderSize(double size)
+      {
+        // No implementation needed for null fixture
+      }
+
       public override IDisposable Subscribe(IObserver<ModelIBall> observer)
       {
         Subscribed++;
@@ -130,6 +135,11 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel.Test
           ModelBall newBall = new ModelBall(0, 0) { };
           BallChanged?.Invoke(this, new BallChaneEventArgs() { Ball = newBall });
         }
+      }
+
+      public override void UpdateBorderSize(double size)
+      {
+        // No implementation needed for simulator fixture
       }
 
       public override void Dispose()

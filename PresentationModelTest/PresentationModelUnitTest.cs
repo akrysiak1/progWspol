@@ -73,6 +73,11 @@ namespace TP.ConcurrentProgramming.Presentation.Model.Test
         Assert.IsNotNull(upperLayerHandler);
       }
 
+      public override void UpdateBorderSize(double size)
+      {
+        // No implementation needed for test fixture
+      }
+
       #endregion BusinessLogicAbstractAPI
     }
 

@@ -8,49 +8,112 @@
 //
 //_____________________________________________________________________________________________________________________________________
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TP.ConcurrentProgramming.BusinessLogic;
+using TP.ConcurrentProgramming.Data;
+
 namespace TP.ConcurrentProgramming.BusinessLogic.Test
 {
   [TestClass]
-  public class BallUnitTest
+  public class BusinessBallUnitTest
   {
     [TestMethod]
-    public void MoveTestMethod()
+    public void BallConstructorTest()
     {
-      DataBallFixture dataBallFixture = new DataBallFixture();
-      Ball newInstance = new(dataBallFixture);
-      int numberOfCallBackCalled = 0;
-      newInstance.NewPositionNotification += (sender, position) => { Assert.IsNotNull(sender); Assert.IsNotNull(position); numberOfCallBackCalled++; };
-      dataBallFixture.Move();
-      Assert.AreEqual<int>(1, numberOfCallBackCalled);
+      var dataBall = new MockDataBall();
+      var ball = new Ball(dataBall);
+      Assert.IsNotNull(ball);
     }
 
-    #region testing instrumentation
-
-    private class DataBallFixture : Data.IBall
+    [TestMethod]
+    public void BallPositionUpdateTest()
     {
-      public Data.IVector Velocity { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+      var dataBall = new MockDataBall();
+      var ball = new Ball(dataBall);
+      bool positionUpdated = false;
+      ball.NewPositionNotification += (sender, position) => positionUpdated = true;
 
-            public Data.IVector Position => throw new NotImplementedException();
+      // Simulate position update
+      dataBall.SimulatePositionUpdate(new Vector(150, 150));
+      Assert.IsTrue(positionUpdated);
+    }
 
-            public event EventHandler<Data.IVector>? NewPositionNotification;
+    [TestMethod]
+    public void BallBorderCollisionTest()
+    {
+      var dataBall = new MockDataBall();
+      var ball = new Ball(dataBall);
+      IPosition? lastPosition = null;
+      ball.NewPositionNotification += (sender, position) => lastPosition = position;
 
-      internal void Move()
+      // Set initial position near border
+      dataBall.Velocity = new Vector(-10, 0); // Moving left
+      dataBall.SimulatePositionUpdate(new Vector(10, 100)); // Near left border
+
+      Assert.IsNotNull(lastPosition);
+      Assert.IsTrue(lastPosition.x >= Ball.GetBallRadius()); // Should not go beyond border
+    }
+
+    [TestMethod]
+    public void BallCollisionTest()
+    {
+      var dataBall1 = new MockDataBall();
+      var dataBall2 = new MockDataBall();
+      var ball1 = new Ball(dataBall1);
+      var ball2 = new Ball(dataBall2);
+
+      // Position balls very close to each other to ensure collision
+      double ballRadius = Ball.GetBallRadius();
+      
+      // Set initial positions
+      dataBall1.SimulatePositionUpdate(new Vector(100, 100));
+      dataBall2.SimulatePositionUpdate(new Vector(100 + 2.1 * ballRadius, 100));
+
+      // Set velocities to make balls move towards each other
+      dataBall1.Velocity = new Vector(10, 0);
+      dataBall2.Velocity = new Vector(-10, 0);
+
+      // Simulate movement that will cause collision
+      dataBall1.SimulatePositionUpdate(new Vector(100 + 5, 100)); // Move ball1 right
+      dataBall2.SimulatePositionUpdate(new Vector(100 + 2.1 * ballRadius - 5, 100)); // Move ball2 left
+
+      // Verify velocities changed after collision
+      Assert.AreNotEqual(10, dataBall1.Velocity.x, "Ball 1 velocity should change after collision");
+      Assert.AreNotEqual(-10, dataBall2.Velocity.x, "Ball 2 velocity should change after collision");
+      
+      // Verify that the total momentum is conserved
+      double totalMomentumX = dataBall1.Velocity.x + dataBall2.Velocity.x;
+      Assert.AreEqual(0, totalMomentumX, 0.001, "Total momentum should be conserved");
+    }
+
+    private class MockDataBall : Data.IBall
+    {
+      public IVector Velocity { get; set; } = new Vector(0, 0);
+      public IVector Position { get; private set; } = new Vector(0, 0);
+      public event EventHandler<IVector>? NewPositionNotification;
+
+      public void SimulatePositionUpdate(IVector newPosition)
       {
-        NewPositionNotification?.Invoke(this, new VectorFixture(0.0, 0.0));
+        Position = newPosition;
+        NewPositionNotification?.Invoke(this, newPosition);
+      }
+
+      public void Stop()
+      {
+        // No implementation needed for mock
       }
     }
 
-    private class VectorFixture : Data.IVector
+    private record Vector : IVector
     {
-      internal VectorFixture(double X, double Y)
-      {
-        x = X; y = Y;
-      }
-
       public double x { get; init; }
       public double y { get; init; }
-    }
 
-    #endregion testing instrumentation
+      public Vector(double x, double y)
+      {
+        this.x = x;
+        this.y = y;
+      }
+    }
   }
 }

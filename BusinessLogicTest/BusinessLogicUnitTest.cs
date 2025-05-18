@@ -60,6 +60,18 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
       }
     }
 
+    [TestMethod]
+    public void UpdateBorderSizeTestMethod()
+    {
+      using (BusinessLogicImplementation newInstance = new(new DataLayerConstructorFixcure()))
+      {
+        double newSize = 500;
+        newInstance.UpdateBorderSize(newSize);
+        // The border size is updated in the Ball class, so we can't directly test it here
+        // This test ensures the method doesn't throw any exceptions
+      }
+    }
+
     #region testing instrumentation
 
     private class DataLayerConstructorFixcure : Data.DataAbstractAPI
@@ -105,17 +117,20 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
 
       private record DataVectorFixture : Data.IVector
       {
-        public double x { get; init; }
-        public double y { get; init; }
+        public double x { get; init; } = 100;
+        public double y { get; init; } = 100;
       }
 
       private class DataBallFixture : Data.IBall
       {
-        public IVector Velocity { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public IVector Velocity { get; set; } = new DataVectorFixture();
+        public IVector Position => new DataVectorFixture();
+        public event EventHandler<IVector>? NewPositionNotification = null;
 
-                public IVector Position => throw new NotImplementedException();
-
-                public event EventHandler<IVector>? NewPositionNotification = null;
+        public void Stop()
+        {
+          // No implementation needed for fixture
+        }
       }
     }
 
