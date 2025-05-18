@@ -19,8 +19,8 @@ namespace TP.ConcurrentProgramming.Data
 
         internal Ball(Vector initialPosition, Vector initialVelocity)
         {
-            Position = initialPosition;
-            Velocity = initialVelocity;
+            _position = initialPosition;
+            _velocity = initialVelocity;
             _isRunning = true;
             _moveThread = new Thread(Move);
             _moveThread.IsBackground = true;
@@ -33,8 +33,44 @@ namespace TP.ConcurrentProgramming.Data
 
         public event EventHandler<IVector>? NewPositionNotification;
 
-        public IVector Velocity { get; set; }
-        public IVector Position { get; private set; }
+        private IVector _velocity;
+        private IVector _position;
+
+        public IVector Velocity 
+        { 
+            get 
+            {
+                lock (_lockObject)
+                {
+                    return _velocity;
+                }
+            }
+            set 
+            {
+                lock (_lockObject)
+                {
+                    _velocity = value;
+                }
+            }
+        }
+
+        public IVector Position 
+        { 
+            get 
+            {
+                lock (_lockObject)
+                {
+                    return _position;
+                }
+            }
+            private set 
+            {
+                lock (_lockObject)
+                {
+                    _position = value;
+                }
+            }
+        }
 
         #endregion IBall
 
@@ -66,11 +102,13 @@ namespace TP.ConcurrentProgramming.Data
         {
             while (_isRunning)
             {
+                IVector currentPosition;
                 lock (_lockObject)
                 {
-                    Position = new Vector(Position.x + Velocity.x, Position.y + Velocity.y);
-                    RaiseNewPositionChangeNotification();
+                    currentPosition = Position;
+                    Position = new Vector(currentPosition.x + Velocity.x, currentPosition.y + Velocity.y);
                 }
+                RaiseNewPositionChangeNotification();
                 Thread.Sleep((int)CalculateSleepTime());
             }
         }
