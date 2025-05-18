@@ -21,6 +21,15 @@ namespace TP.ConcurrentProgramming.PresentationView
     public MainWindow()
     {
       InitializeComponent();
+      SizeChanged += MainWindow_SizeChanged;
+    }
+
+    private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+      if (DataContext is MainWindowViewModel viewModel)
+      {
+        viewModel.UpdateWindowSize(e.NewSize.Width, e.NewSize.Height);
+      }
     }
 
     private void StartButton_Click(object sender, RoutedEventArgs e)

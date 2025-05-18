@@ -12,13 +12,19 @@ namespace TP.ConcurrentProgramming.BusinessLogic
 {
     internal class Ball : IBall
     {
-        private const double BORDER_WIDTH = 400;
-        private const double BORDER_HEIGHT = 420;
+        private static double BORDER_WIDTH = 400;
+        private static double BORDER_HEIGHT = 420;
         private const double BALL_RADIUS = 10;
         private const double VISUAL_RADIUS = 10; // Used for drawing
         private readonly object lockObject = new object();
         private readonly Data.IBall dataBall;
         private static readonly List<Ball> AllBalls = new List<Ball>();
+
+        public static void SetBorderSize(double size)
+        {
+            BORDER_WIDTH = size;
+            BORDER_HEIGHT = size;
+        }
 
         public Ball(Data.IBall ball)
         {

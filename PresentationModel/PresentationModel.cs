@@ -49,6 +49,11 @@ namespace TP.ConcurrentProgramming.Presentation.Model
       layerBellow.Start(numberOfBalls, StartHandler);
     }
 
+    public override void UpdateBorderSize(double size)
+    {
+      layerBellow.UpdateBorderSize(size);
+    }
+
     #endregion ModelAbstractApi
 
     #region API

@@ -46,6 +46,11 @@ namespace TP.ConcurrentProgramming.BusinessLogic
       layerBellow.Start(numberOfBalls, (startingPosition, databall) => upperLayerHandler(new Position(startingPosition.x, startingPosition.x), new Ball(databall)));
     }
 
+    public override void UpdateBorderSize(double size)
+    {
+      Ball.SetBorderSize(size);
+    }
+
     #endregion BusinessLogicAbstractAPI
 
     #region private

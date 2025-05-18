@@ -26,6 +26,8 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
     {
       ModelLayer = modelLayerAPI == null ? ModelAbstractApi.CreateModel() : modelLayerAPI;
       Observer = ModelLayer.Subscribe<ModelIBall>(x => Balls.Add(x));
+      BorderVisible = false;
+      BorderSize = 400; // Initial size
     }
 
     #endregion ctor
@@ -38,9 +40,75 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
         throw new ObjectDisposedException(nameof(MainWindowViewModel));
       ModelLayer.Start(numberOfBalls);
       Observer.Dispose();
+      BorderVisible = true;
+      if (!_borderSizeCalculated)
+      {
+        CalculateBorderSize();
+        _borderSizeCalculated = true;
+      }
     }
 
     public ObservableCollection<ModelIBall> Balls { get; } = new ObservableCollection<ModelIBall>();
+
+    private bool _borderVisible;
+    public bool BorderVisible
+    {
+      get => _borderVisible;
+      private set
+      {
+        if (_borderVisible != value)
+        {
+          _borderVisible = value;
+          RaisePropertyChanged();
+        }
+      }
+    }
+
+    private double _borderSize;
+    private bool _borderSizeCalculated = false;
+    public double BorderSize
+    {
+      get => _borderSize;
+      private set
+      {
+        if (_borderSize != value)
+        {
+          _borderSize = value;
+          RaisePropertyChanged();
+        }
+      }
+    }
+
+    private double _windowWidth;
+    private double _windowHeight;
+
+    public void UpdateWindowSize(double width, double height)
+    {
+      _windowWidth = width;
+      _windowHeight = height;
+    }
+
+    private void CalculateBorderSize()
+    {
+      // Calculate the maximum square size that fits in the window
+      // We need to account for the top panel height, margins, and border thickness
+      const double TOP_PANEL_HEIGHT = 60;  // Height of the top panel
+      const double MARGIN = 40;           // General margin
+      const double BORDER_THICKNESS = 8;  // Total border thickness (4px on each side)
+      const double EXTRA_PADDING = 20;    // Additional padding to ensure visibility
+      
+      double availableHeight = _windowHeight - TOP_PANEL_HEIGHT - MARGIN - BORDER_THICKNESS - EXTRA_PADDING;
+      double availableWidth = _windowWidth - MARGIN - BORDER_THICKNESS - EXTRA_PADDING;
+      
+      // Take the minimum of width and height to ensure we get a square
+      double maxSize = Math.Min(availableWidth, availableHeight);
+      
+      // Ensure we don't go below a minimum size
+      BorderSize = Math.Max(400, maxSize);
+
+      // Update the physical border size through the business logic layer
+      ModelLayer.UpdateBorderSize(BorderSize);
+    }
 
     #endregion public API
 

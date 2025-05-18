@@ -11,6 +11,9 @@
         MinWidth="400"
         MinHeight="350">
 
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Window.Resources>
 
     <Window.DataContext>
         <vm:ConcreteMainWindowViewModel />
@@ -28,30 +31,35 @@
             <Button x:Name="StartButton" Content="START" Width="100" Click="StartButton_Click"/>
         </StackPanel>
 
-        <!-- Viewbox to scale contents -->
-        <Viewbox Grid.Row="1" Stretch="Uniform">
-            <Border BorderThickness="4" BorderBrush="Green" Background="Transparent">
-                <Canvas Width="400" Height="420" Background="White">
-                    <ItemsControl ItemsSource="{Binding Balls}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <Canvas />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Ellipse Width="{Binding Diameter}" Height="{Binding Diameter}" Fill="Blue" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                        <ItemsControl.ItemContainerStyle>
-                            <Style TargetType="ContentPresenter">
-                                <Setter Property="Canvas.Top" Value="{Binding Top}" />
-                                <Setter Property="Canvas.Left" Value="{Binding Left}" />
-                            </Style>
-                        </ItemsControl.ItemContainerStyle>
-                    </ItemsControl>
-                </Canvas>
-            </Border>
-        </Viewbox>
+        <Border Grid.Row="1" 
+                BorderThickness="4" 
+                BorderBrush="Green" 
+                Background="Transparent" 
+                Width="{Binding BorderSize}" 
+                Height="{Binding BorderSize}" 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Center"
+                Visibility="{Binding BorderVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Canvas Width="{Binding BorderSize}" Height="{Binding BorderSize}" Background="Transparent">
+                <ItemsControl ItemsSource="{Binding Balls}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Ellipse Width="{Binding Diameter}" Height="{Binding Diameter}" Fill="Blue" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Canvas.Top" Value="{Binding Top}" />
+                            <Setter Property="Canvas.Left" Value="{Binding Left}" />
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                </ItemsControl>
+            </Canvas>
+        </Border>
     </Grid>
 </Window>

@@ -27,6 +27,7 @@ namespace TP.ConcurrentProgramming.Presentation.Model
     }
 
     public abstract void Start(int numberOfBalls);
+    public abstract void UpdateBorderSize(double size);
 
     #region IObservable
 
