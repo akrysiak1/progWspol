@@ -52,10 +52,9 @@ namespace TP.ConcurrentProgramming.BusinessLogic
 
         private void RaisePositionChangeEvent(object? sender, Data.IVector e)
         {
-            lock (lockObject)
-            {
-                double newX = e.x;
-                double newY = e.y;
+                var position = e;
+                double newX = position.x;
+                double newY = position.y;
 
                 const double EPSILON = 0.0001;
 
@@ -87,7 +86,7 @@ namespace TP.ConcurrentProgramming.BusinessLogic
 
                 // Notify view about new position
                 NewPositionNotification?.Invoke(this, new Position(newX, newY));
-            }
+            
         }
 
         private void CheckBallCollisions(ref double newX, ref double newY)
@@ -98,8 +97,9 @@ namespace TP.ConcurrentProgramming.BusinessLogic
                 {
                     if (otherBall == this) continue;
 
-                    double dx = newX - otherBall.dataBall.Position.x;
-                    double dy = newY - otherBall.dataBall.Position.y;
+                    var otherPosition = otherBall.dataBall.Position;
+                    double dx = newX - otherPosition.x;
+                    double dy = newY - otherPosition.y;
                     double distance = Math.Sqrt(dx * dx + dy * dy);
 
                     if (distance < 2 * VISUAL_RADIUS && distance > 0) // Avoid division by 0

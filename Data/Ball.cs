@@ -103,11 +103,10 @@ namespace TP.ConcurrentProgramming.Data
             while (_isRunning)
             {
                 IVector currentPosition;
-                lock (_lockObject)
-                {
-                    currentPosition = Position;
-                    Position = new Vector(currentPosition.x + Velocity.x, currentPosition.y + Velocity.y);
-                }
+                
+                currentPosition = Position;
+                Position = new Vector(currentPosition.x + Velocity.x, currentPosition.y + Velocity.y);
+                
                 RaiseNewPositionChangeNotification();
                 Thread.Sleep((int)CalculateSleepTime());
             }
