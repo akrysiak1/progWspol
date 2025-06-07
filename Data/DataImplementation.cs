@@ -70,7 +70,7 @@ namespace TP.ConcurrentProgramming.Data
                 {
                     try
                     {
-                        foreach (var ball in BallsList)
+                        foreach (IBall ball in BallsList)
                         {
                             if (ball is Ball concreteBall)
                             {
@@ -80,7 +80,7 @@ namespace TP.ConcurrentProgramming.Data
                         BallsList.Clear();
 
                         // Stop the logger
-                        var logger = DataLogger.LoggerInstance;
+                        DataLogger logger = DataLogger.LoggerInstance;
                         if (logger != null)
                         {
                             logger.Stop();
@@ -98,9 +98,9 @@ namespace TP.ConcurrentProgramming.Data
         public override void Dispose()
         {
             if (!Disposed)
-            {
-                Dispose(disposing: true);
-                GC.SuppressFinalize(this);
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
             }
         }
 
@@ -120,8 +120,8 @@ namespace TP.ConcurrentProgramming.Data
         internal void CheckBallsList(Action<IEnumerable<IBall>> returnBallsList)
         {
             if (!Disposed)
-            {
-                returnBallsList(BallsList);
+        {
+            returnBallsList(BallsList);
             }
         }
 
@@ -129,8 +129,8 @@ namespace TP.ConcurrentProgramming.Data
         internal void CheckNumberOfBalls(Action<int> returnNumberOfBalls)
         {
             if (!Disposed)
-            {
-                returnNumberOfBalls(BallsList.Count);
+        {
+            returnNumberOfBalls(BallsList.Count);
             }
         }
 

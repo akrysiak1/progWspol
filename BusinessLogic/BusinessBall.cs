@@ -56,7 +56,7 @@ namespace TP.ConcurrentProgramming.BusinessLogic
 
         private void RaisePositionChangeEvent(object? sender, Data.IVector e)
         {
-                var position = e;
+                Data.IVector position = e;
                 double newX = position.x;
                 double newY = position.y;
 
@@ -101,11 +101,11 @@ namespace TP.ConcurrentProgramming.BusinessLogic
         {
             lock (AllBalls)
             {
-                foreach (var otherBall in AllBalls)
+                foreach (Ball otherBall in AllBalls)
                 {
                     if (otherBall == this) continue;
 
-                    var otherPosition = otherBall.dataBall.Position;
+                    Data.IVector otherPosition = otherBall.dataBall.Position;
                     double dx = newX - otherPosition.x;
                     double dy = newY - otherPosition.y;
                     double distance = Math.Sqrt(dx * dx + dy * dy);

@@ -20,16 +20,16 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
     [TestMethod]
     public void BallConstructorTest()
     {
-      var dataBall = new MockDataBall();
-      var ball = new Ball(dataBall);
+      MockDataBall dataBall = new MockDataBall();
+      Ball ball = new Ball(dataBall);
       Assert.IsNotNull(ball);
     }
 
     [TestMethod]
     public void BallPositionUpdateTest()
     {
-      var dataBall = new MockDataBall();
-      var ball = new Ball(dataBall);
+      MockDataBall dataBall = new MockDataBall();
+      Ball ball = new Ball(dataBall);
       bool positionUpdated = false;
       ball.NewPositionNotification += (sender, position) => positionUpdated = true;
 
@@ -41,8 +41,8 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
     [TestMethod]
     public void BallBorderCollisionTest()
     {
-      var dataBall = new MockDataBall();
-      var ball = new Ball(dataBall);
+      MockDataBall dataBall = new MockDataBall();
+      Ball ball = new Ball(dataBall);
       IPosition? lastPosition = null;
       ball.NewPositionNotification += (sender, position) => lastPosition = position;
 
@@ -57,10 +57,10 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
     [TestMethod]
     public void BallCollisionTest()
     {
-      var dataBall1 = new MockDataBall();
-      var dataBall2 = new MockDataBall();
-      var ball1 = new Ball(dataBall1);
-      var ball2 = new Ball(dataBall2);
+      MockDataBall dataBall1 = new MockDataBall();
+      MockDataBall dataBall2 = new MockDataBall();
+      Ball ball1 = new Ball(dataBall1);
+      Ball ball2 = new Ball(dataBall2);
 
       // Position balls very close to each other to ensure collision
       double ballRadius = Ball.GetBallRadius();

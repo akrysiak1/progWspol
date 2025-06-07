@@ -27,7 +27,7 @@ namespace TP.ConcurrentProgramming.Presentation.Model
         public static void UpdateBorderSize(double size)
         {
             _borderSize = size;
-            foreach (var ball in AllBalls)
+            foreach (ModelBall ball in AllBalls)
             {
                 ball.Diameter = _borderSize * DIAMETER_RATIO;
             }

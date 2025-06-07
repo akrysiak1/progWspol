@@ -34,7 +34,7 @@ namespace TP.ConcurrentProgramming.Data
             {
                 _logSignal.WaitOne();
 
-                while (_logQueue.TryDequeue(out var entry))
+                while (_logQueue.TryDequeue(out BallLogEntry entry))
                 {
                     try
                     {
@@ -68,7 +68,7 @@ namespace TP.ConcurrentProgramming.Data
 
             if (_queueLimiter.Wait(0))
             {
-                var logEntry = new BallLogEntry(DateTime.Now, message, threadId, position, velocity);
+                BallLogEntry logEntry = new BallLogEntry(DateTime.Now, message, threadId, position, velocity);
                 _logQueue.Enqueue(logEntry);
                 _logSignal.Set();
             }
