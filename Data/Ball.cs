@@ -10,6 +10,7 @@
 
 using System;
 using System.Threading;
+using System.Timers;
 
 namespace TP.ConcurrentProgramming.Data
 {
@@ -22,12 +23,16 @@ namespace TP.ConcurrentProgramming.Data
             _position = initialPosition;
             _velocity = initialVelocity;
             _isRunning = true;
-            _moveThread = new Thread(Move);
-            _moveThread.IsBackground = true;
-            _moveThread.Start();
+            
+            // Create and configure timer
+            _moveTimer = new System.Timers.Timer();
+            _moveTimer.Interval = 10; // ~60 FPS
+            _moveTimer.Elapsed += OnTimerElapsed;
+            _moveTimer.AutoReset = true;
+            _moveTimer.Start();
             
             // Log ball creation
-            IDataLogger.CreateDefault().Log("BallCreated", _moveThread.ManagedThreadId, _position, _velocity);
+            IDataLogger.CreateDefault().Log("BallCreated", Thread.CurrentThread.ManagedThreadId, _position, _velocity);
         }
 
         #endregion ctor
@@ -79,48 +84,44 @@ namespace TP.ConcurrentProgramming.Data
 
         #region private
 
-        private readonly Thread _moveThread;
+        private readonly System.Timers.Timer _moveTimer;
         private bool _isRunning;
         private readonly object _lockObject = new object();
-        private const double BASE_REFRESH_RATE = 60.0; // Base refresh rate in Hz
-        private const double MIN_SLEEP_TIME = 5; // Minimum sleep time in ms
-        private const double MAX_SLEEP_TIME = 50; // Maximum sleep time in ms
+        private DateTime _lastUpdateTime = DateTime.Now;
+
+        private void OnTimerElapsed(object sender, ElapsedEventArgs e)
+        {
+            if (!_isRunning) return;
+
+            DateTime currentTime = DateTime.Now;
+            double deltaTime = (currentTime - _lastUpdateTime).TotalMilliseconds / 1000.0; // Convert to seconds
+            _lastUpdateTime = currentTime;
+
+            lock (_lockObject)
+            {
+                IVector currentPosition = Position;
+                // Scale up velocity by multiplying by 100 to make movement more noticeable
+                Position = new Vector(
+                    currentPosition.x + Velocity.x * deltaTime * 100,
+                    currentPosition.y + Velocity.y * deltaTime * 100
+                );
+            }
+
+            RaiseNewPositionChangeNotification();
+        }
 
         private void RaiseNewPositionChangeNotification()
         {
             NewPositionNotification?.Invoke(this, Position);
         }
 
-        private double CalculateSleepTime()
-        {
-            double speed = Math.Sqrt(Velocity.x * Velocity.x + Velocity.y * Velocity.y);
-            
-            // Faster balls will have shorter sleep time (higher refresh rate)
-            double sleepTime = MAX_SLEEP_TIME - (speed * (MAX_SLEEP_TIME - MIN_SLEEP_TIME) / 5.0);
-            // Ensure sleep time stays within bounds
-            return Math.Max(MIN_SLEEP_TIME, Math.Min(MAX_SLEEP_TIME, sleepTime));
-        }
-
-        private void Move()
-        {
-            while (_isRunning)
-            {
-                IVector currentPosition;
-                
-                currentPosition = Position;
-                Position = new Vector(currentPosition.x + Velocity.x, currentPosition.y + Velocity.y);
-                
-                RaiseNewPositionChangeNotification();
-                Thread.Sleep((int)CalculateSleepTime());
-            }
-        }
-
         public void Stop()
         {
             _isRunning = false;
-            _moveThread.Join();
+            _moveTimer.Stop();
+            _moveTimer.Dispose();
             // Log ball stop
-            IDataLogger.CreateDefault().Log("BallStopped", _moveThread.ManagedThreadId, Position, Velocity);
+            IDataLogger.CreateDefault().Log("BallStopped", Thread.CurrentThread.ManagedThreadId, Position, Velocity);
         }
 
         #endregion private
