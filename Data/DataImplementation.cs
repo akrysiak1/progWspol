@@ -28,7 +28,7 @@ namespace TP.ConcurrentProgramming.Data
         public override void Start(int numberOfBalls, Action<IVector, IBall> upperLayerHandler)
         {
             if (Disposed)
-                throw new ObjectDisposedException(nameof(DataImplementation));
+                return; // Return silently instead of throwing
             if (upperLayerHandler == null)
                 throw new ArgumentNullException(nameof(upperLayerHandler));
             if (numberOfBalls <= 0)
@@ -68,25 +68,40 @@ namespace TP.ConcurrentProgramming.Data
             {
                 if (disposing)
                 {
-                    foreach (var ball in BallsList)
+                    try
                     {
-                        if (ball is Ball concreteBall)
+                        foreach (var ball in BallsList)
                         {
-                            concreteBall.Stop();
+                            if (ball is Ball concreteBall)
+                            {
+                                concreteBall.Stop();
+                            }
+                        }
+                        BallsList.Clear();
+
+                        // Stop the logger
+                        var logger = DataLogger.LoggerInstance;
+                        if (logger != null)
+                        {
+                            logger.Stop();
                         }
                     }
-                    BallsList.Clear();
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error during disposal: {ex.Message}");
+                    }
                 }
                 Disposed = true;
             }
-            else
-                throw new ObjectDisposedException(nameof(DataImplementation));
         }
 
         public override void Dispose()
         {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            if (!Disposed)
+            {
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
+            }
         }
 
         #endregion IDisposable
@@ -95,6 +110,7 @@ namespace TP.ConcurrentProgramming.Data
 
         private bool Disposed = false;
         private readonly List<IBall> BallsList = new List<IBall>();
+        private readonly object _disposeLock = new object();
 
         #endregion private
 
@@ -103,13 +119,19 @@ namespace TP.ConcurrentProgramming.Data
         [Conditional("DEBUG")]
         internal void CheckBallsList(Action<IEnumerable<IBall>> returnBallsList)
         {
-            returnBallsList(BallsList);
+            if (!Disposed)
+            {
+                returnBallsList(BallsList);
+            }
         }
 
         [Conditional("DEBUG")]
         internal void CheckNumberOfBalls(Action<int> returnNumberOfBalls)
         {
-            returnNumberOfBalls(BallsList.Count);
+            if (!Disposed)
+            {
+                returnNumberOfBalls(BallsList.Count);
+            }
         }
 
         [Conditional("DEBUG")]

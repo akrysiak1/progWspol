@@ -61,4 +61,11 @@ namespace TP.ConcurrentProgramming.Data
         IVector Position { get; }
         void Stop();
     }
+
+    public interface IDataLogger
+    {
+        void Log(string message, int threadId, IVector position, IVector velocity);
+        void Stop();
+        static IDataLogger CreateDefault() => DataLogger.LoggerInstance;
+    }
 }

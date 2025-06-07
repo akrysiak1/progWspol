@@ -25,6 +25,9 @@ namespace TP.ConcurrentProgramming.Data
             _moveThread = new Thread(Move);
             _moveThread.IsBackground = true;
             _moveThread.Start();
+            
+            // Log ball creation
+            IDataLogger.CreateDefault().Log("BallCreated", _moveThread.ManagedThreadId, _position, _velocity);
         }
 
         #endregion ctor
@@ -116,6 +119,8 @@ namespace TP.ConcurrentProgramming.Data
         {
             _isRunning = false;
             _moveThread.Join();
+            // Log ball stop
+            IDataLogger.CreateDefault().Log("BallStopped", _moveThread.ManagedThreadId, Position, Velocity);
         }
 
         #endregion private
