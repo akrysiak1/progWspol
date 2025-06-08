@@ -4,9 +4,10 @@ using System.Text.Json;
 
 namespace TP.ConcurrentProgramming.Data
 {
-    public class DataLogger : IDataLogger
+    public class DataLogger : IDataLogger, IDisposable
     {
         private static readonly Lazy<DataLogger> _singletonInstance = new Lazy<DataLogger>(() => new DataLogger("../../../../Data/logs/balls_logs.json"));
+        private bool _disposed = false;
 
         private readonly ConcurrentQueue<BallLogEntry> _logQueue;
         private readonly string _logFilePath;
@@ -15,12 +16,16 @@ namespace TP.ConcurrentProgramming.Data
         private readonly AutoResetEvent _logSignal;
         private const int MaxQueueSize = 10000;
         private readonly SemaphoreSlim _queueLimiter;
+        private readonly StreamWriter _logFileWriter;
 
         private DataLogger(string logFilePath)
         {
             _logSignal = new AutoResetEvent(false);
             _logFilePath = logFilePath;
             _logQueue = new ConcurrentQueue<BallLogEntry>();
+
+            // Open file once at startup
+            _logFileWriter = new StreamWriter(_logFilePath, true);
 
             _queueLimiter = new SemaphoreSlim(MaxQueueSize);
             _isLoggingActive = true;
@@ -39,11 +44,12 @@ namespace TP.ConcurrentProgramming.Data
                     try
                     {
                         string json = JsonSerializer.Serialize(entry);
-                        File.AppendAllText(_logFilePath, json + Environment.NewLine);
+                        _logFileWriter.WriteLine(json);
+                        _logFileWriter.Flush(); // Ensure data is written to disk
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"Error writing log entry: {ex.Message}");
+                        Log("Error writing log entry: " + ex.Message, Thread.CurrentThread.ManagedThreadId, new Vector(0, 0), new Vector(0, 0));
                     }
                     finally
                     {
@@ -63,7 +69,7 @@ namespace TP.ConcurrentProgramming.Data
 
         public void Log(string message, int threadId, IVector position, IVector velocity)
         {
-            if (!_isLoggingActive)
+            if (!_isLoggingActive || _disposed)
                 return;
 
             if (_queueLimiter.Wait(0))
@@ -74,7 +80,7 @@ namespace TP.ConcurrentProgramming.Data
             }
             else
             {
-                Debug.WriteLine("Log queue is full.");
+                Log("Log queue is full", Thread.CurrentThread.ManagedThreadId, new Vector(0, 0), new Vector(0, 0));
             }
         }
 
@@ -88,10 +94,13 @@ namespace TP.ConcurrentProgramming.Data
             // Signal the logging thread to process remaining logs
             _logSignal.Set();
             
-            // Wait for the queue to be empty
-            while (!_logQueue.IsEmpty)
+            // Wait for the queue to be empty with a timeout
+            int timeout = 5000; // 5 seconds timeout
+            int elapsed = 0;
+            while (!_logQueue.IsEmpty && elapsed < timeout)
             {
-                Thread.Sleep(100); // Small delay to prevent busy waiting
+                Thread.Sleep(50); // Shorter sleep time
+                elapsed += 50;
             }
             
             // Wait for the logging thread to finish
@@ -109,6 +118,38 @@ namespace TP.ConcurrentProgramming.Data
                     break;
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // First stop accepting new logs and process remaining ones
+                    Stop();
+                    
+                    // Close the file writer
+                    _logFileWriter?.Dispose();
+                    
+                    // Dispose other managed resources
+                    _logSignal?.Dispose();
+                    _queueLimiter?.Dispose();
+                }
+
+                _disposed = true;
+            }
+        }
+
+        ~DataLogger()
+        {
+            Dispose(false);
         }
 
         internal class BallLogEntry

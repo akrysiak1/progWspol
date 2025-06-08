@@ -26,8 +26,8 @@ namespace TP.ConcurrentProgramming.Data
             
             // Create and configure timer
             _moveTimer = new System.Timers.Timer();
-            _moveTimer.Interval = 10; // ~60 FPS
-            _moveTimer.Elapsed += OnTimerElapsed;
+            UpdateTimerInterval(); // Set initial interval based on velocity
+            _moveTimer.Elapsed += Move;
             _moveTimer.AutoReset = true;
             _moveTimer.Start();
             
@@ -58,6 +58,7 @@ namespace TP.ConcurrentProgramming.Data
                 lock (_lockObject)
                 {
                     _velocity = value;
+                    UpdateTimerInterval(); // Update timer interval when velocity changes
                 }
             }
         }
@@ -89,7 +90,28 @@ namespace TP.ConcurrentProgramming.Data
         private readonly object _lockObject = new object();
         private DateTime _lastUpdateTime = DateTime.Now;
 
-        private void OnTimerElapsed(object sender, ElapsedEventArgs e)
+        // Constants for refresh rate calculation
+        private const double MIN_INTERVAL = 8.0;  // Minimum interval in ms (120 FPS)
+        private const double MAX_INTERVAL = 20.0;  // Maximum interval in ms (50 FPS)
+
+        private void UpdateTimerInterval()
+        {
+            if (!_isRunning) return;
+
+            double speed = Math.Sqrt(_velocity.x * _velocity.x + _velocity.y * _velocity.y);
+            
+            // Calculate interval based on speed
+            // Faster speed = shorter interval (higher refresh rate)
+            double interval = MAX_INTERVAL - (speed * (MAX_INTERVAL - MIN_INTERVAL) / 5);
+            
+            // Ensure interval stays within bounds
+            interval = Math.Max(MIN_INTERVAL, Math.Min(MAX_INTERVAL, interval));
+            
+            // Update timer interval
+            _moveTimer.Interval = interval;
+        }
+
+        private void Move(object sender, ElapsedEventArgs e)
         {
             if (!_isRunning) return;
 
