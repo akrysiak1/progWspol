@@ -64,7 +64,9 @@ namespace TP.ConcurrentProgramming.Data
 
     public interface IDataLogger
     {
-        void Log(string message, int threadId, IVector position, IVector velocity);
+        Task Log(string message, int threadId, IVector position, IVector velocity);
+        Task Flush();
+        Task WaitForFlush();
         void Stop();
         static IDataLogger CreateDefault() => DataLogger.LoggerInstance;
     }

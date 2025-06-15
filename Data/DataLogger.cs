@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace TP.ConcurrentProgramming.Data
 {
@@ -9,53 +10,63 @@ namespace TP.ConcurrentProgramming.Data
         private static readonly Lazy<DataLogger> _singletonInstance = new Lazy<DataLogger>(() => new DataLogger("../../../../Data/logs/balls_logs.json"));
         private bool _disposed = false;
 
-        private readonly ConcurrentQueue<BallLogEntry> _logQueue;
+        private readonly BlockingCollection<BallLogEntry> _logQueue;
         private readonly string _logFilePath;
-        private readonly Thread _loggingThread;
+        private readonly Task _processingTask;
         private bool _isLoggingActive;
-        private readonly AutoResetEvent _logSignal;
+        private readonly CancellationTokenSource _cancellationTokenSource;
         private const int MaxQueueSize = 10000;
         private readonly SemaphoreSlim _queueLimiter;
         private readonly StreamWriter _logFileWriter;
 
         private DataLogger(string logFilePath)
         {
-            _logSignal = new AutoResetEvent(false);
             _logFilePath = logFilePath;
-            _logQueue = new ConcurrentQueue<BallLogEntry>();
+            _logQueue = new BlockingCollection<BallLogEntry>(MaxQueueSize);
+            _cancellationTokenSource = new CancellationTokenSource();
+            _queueLimiter = new SemaphoreSlim(MaxQueueSize);
+            _isLoggingActive = true;
 
             // Open file once at startup
             _logFileWriter = new StreamWriter(_logFilePath, true);
 
-            _queueLimiter = new SemaphoreSlim(MaxQueueSize);
-            _isLoggingActive = true;
-            _loggingThread = new Thread(ProcessLogQueue);
-            _loggingThread.Start();
+            // Start the processing task
+            _processingTask = Task.Run(ProcessLogQueueAsync, _cancellationTokenSource.Token);
         }
 
-        private void ProcessLogQueue()
+        private async Task ProcessLogQueueAsync()
         {
-            while (_isLoggingActive || !_logQueue.IsEmpty)
+            try
             {
-                _logSignal.WaitOne();
-
-                while (_logQueue.TryDequeue(out BallLogEntry entry))
+                while (_isLoggingActive || !_logQueue.IsCompleted)
                 {
-                    try
+                    if (_logQueue.TryTake(out BallLogEntry entry))
                     {
-                        string json = JsonSerializer.Serialize(entry);
-                        _logFileWriter.WriteLine(json);
-                        _logFileWriter.Flush(); // Ensure data is written to disk
+                        try
+                        {
+                            string json = JsonSerializer.Serialize(entry);
+                            await _logFileWriter.WriteLineAsync(json);
+                            await _logFileWriter.FlushAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            await Log("Error writing log entry: " + ex.Message, Thread.CurrentThread.ManagedThreadId, new Vector(0, 0), new Vector(0, 0));
+                        }
+                        finally
+                        {
+                            _queueLimiter.Release();
+                        }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        Log("Error writing log entry: " + ex.Message, Thread.CurrentThread.ManagedThreadId, new Vector(0, 0), new Vector(0, 0));
-                    }
-                    finally
-                    {
-                        _queueLimiter.Release();
+                        // If no items in queue, wait a bit before checking again
+                        await Task.Delay(50, _cancellationTokenSource.Token);
                     }
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // Normal cancellation, do nothing
             }
         }
 
@@ -67,7 +78,7 @@ namespace TP.ConcurrentProgramming.Data
             }
         }
 
-        public void Log(string message, int threadId, IVector position, IVector velocity)
+        public async Task Log(string message, int threadId, IVector position, IVector velocity)
         {
             if (!_isLoggingActive || _disposed)
                 return;
@@ -75,36 +86,45 @@ namespace TP.ConcurrentProgramming.Data
             if (_queueLimiter.Wait(0))
             {
                 BallLogEntry logEntry = new BallLogEntry(DateTime.Now, message, threadId, position, velocity);
-                _logQueue.Enqueue(logEntry);
-                _logSignal.Set();
+                _logQueue.Add(logEntry);
             }
             else
             {
-                Log("Log queue is full", Thread.CurrentThread.ManagedThreadId, new Vector(0, 0), new Vector(0, 0));
+                await Log("Log entry was not logged - buffer is full", Thread.CurrentThread.ManagedThreadId, new Vector(0, 0), new Vector(0, 0));
             }
+        }
+
+        public async Task Flush()
+        {
+            if (!_isLoggingActive) return;
+            
+            _logQueue.CompleteAdding();
+            await _processingTask;
+        }
+
+        public async Task WaitForFlush()
+        {
+            if (!_isLoggingActive) return;
+            
+            _logQueue.CompleteAdding();
+            await _processingTask;
         }
 
         public void Stop()
         {
             if (!_isLoggingActive) return;
             
-            // First, stop accepting new logs
             _isLoggingActive = false;
+            _logQueue.CompleteAdding();
             
-            // Signal the logging thread to process remaining logs
-            _logSignal.Set();
-            
-            // Wait for the queue to be empty with a timeout
-            int timeout = 5000; // 5 seconds timeout
-            int elapsed = 0;
-            while (!_logQueue.IsEmpty && elapsed < timeout)
+            try
             {
-                Thread.Sleep(50); // Shorter sleep time
-                elapsed += 50;
+                _processingTask.Wait();
             }
-            
-            // Wait for the logging thread to finish
-            _loggingThread.Join();
+            catch (AggregateException)
+            {
+                // Task was cancelled or failed, which is expected during shutdown
+            }
             
             // Release any remaining semaphore slots
             while (_queueLimiter.CurrentCount < MaxQueueSize)
@@ -132,15 +152,12 @@ namespace TP.ConcurrentProgramming.Data
             {
                 if (disposing)
                 {
-                    // First stop accepting new logs and process remaining ones
                     Stop();
-                    
-                    // Close the file writer
+                    _cancellationTokenSource.Cancel();
                     _logFileWriter?.Dispose();
-                    
-                    // Dispose other managed resources
-                    _logSignal?.Dispose();
                     _queueLimiter?.Dispose();
+                    _logQueue?.Dispose();
+                    _cancellationTokenSource?.Dispose();
                 }
 
                 _disposed = true;

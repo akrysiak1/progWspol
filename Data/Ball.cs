@@ -11,6 +11,7 @@
 using System;
 using System.Threading;
 using System.Timers;
+using System.Threading.Tasks;
 
 namespace TP.ConcurrentProgramming.Data
 {
@@ -143,7 +144,7 @@ namespace TP.ConcurrentProgramming.Data
             _moveTimer.Stop();
             _moveTimer.Dispose();
             // Log ball stop
-            IDataLogger.CreateDefault().Log("BallStopped", Thread.CurrentThread.ManagedThreadId, Position, Velocity);
+            IDataLogger.CreateDefault().Log("BallStopped", Thread.CurrentThread.ManagedThreadId, Position, Velocity).ConfigureAwait(false);
         }
 
         #endregion private
