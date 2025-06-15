@@ -91,7 +91,7 @@ namespace TP.ConcurrentProgramming.Presentation.Model.Test
       using (ModelImplementation newInstance = new(underneathLayerFixture))
       {
         int notificationCount = 0;
-        var subscription = newInstance.Subscribe(ball => notificationCount++);
+        IDisposable subscription = newInstance.Subscribe(ball => notificationCount++);
 
         // Start the model to create balls
         newInstance.Start(2);
@@ -131,8 +131,8 @@ namespace TP.ConcurrentProgramming.Presentation.Model.Test
         // Simulate ball creation
         for (int i = 0; i < numberOfBalls; i++)
         {
-          var mockBall = new MockBall();
-          var position = new MockPosition(100, 100);
+          MockBall mockBall = new MockBall();
+          MockPosition position = new MockPosition(100, 100);
           upperLayerHandler(position, mockBall);
         }
       }
