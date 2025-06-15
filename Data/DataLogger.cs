@@ -16,7 +16,6 @@ namespace TP.ConcurrentProgramming.Data
         private bool _isLoggingActive;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private const int MaxQueueSize = 10000;
-        private readonly SemaphoreSlim _queueLimiter;
         private readonly StreamWriter _logFileWriter;
 
         private DataLogger(string logFilePath)
@@ -24,7 +23,6 @@ namespace TP.ConcurrentProgramming.Data
             _logFilePath = logFilePath;
             _logQueue = new BlockingCollection<BallLogEntry>(MaxQueueSize);
             _cancellationTokenSource = new CancellationTokenSource();
-            _queueLimiter = new SemaphoreSlim(MaxQueueSize);
             _isLoggingActive = true;
 
             // Open file once at startup
@@ -51,10 +49,6 @@ namespace TP.ConcurrentProgramming.Data
                         catch (Exception ex)
                         {
                             await Log("Error writing log entry: " + ex.Message, Thread.CurrentThread.ManagedThreadId, new Vector(0, 0), new Vector(0, 0));
-                        }
-                        finally
-                        {
-                            _queueLimiter.Release();
                         }
                     }
                     else
@@ -83,13 +77,14 @@ namespace TP.ConcurrentProgramming.Data
             if (!_isLoggingActive || _disposed)
                 return;
 
-            if (_queueLimiter.Wait(0))
+            try
             {
                 BallLogEntry logEntry = new BallLogEntry(DateTime.Now, message, threadId, position, velocity);
                 _logQueue.Add(logEntry);
             }
-            else
+            catch (InvalidOperationException)
             {
+                // Queue is full
                 await Log("Log entry was not logged - buffer is full", Thread.CurrentThread.ManagedThreadId, new Vector(0, 0), new Vector(0, 0));
             }
         }
@@ -125,19 +120,6 @@ namespace TP.ConcurrentProgramming.Data
             {
                 // Task was cancelled or failed, which is expected during shutdown
             }
-            
-            // Release any remaining semaphore slots
-            while (_queueLimiter.CurrentCount < MaxQueueSize)
-            {
-                try
-                {
-                    _queueLimiter.Release();
-                }
-                catch (SemaphoreFullException)
-                {
-                    break;
-                }
-            }
         }
 
         public void Dispose()
@@ -155,7 +137,6 @@ namespace TP.ConcurrentProgramming.Data
                     Stop();
                     _cancellationTokenSource.Cancel();
                     _logFileWriter?.Dispose();
-                    _queueLimiter?.Dispose();
                     _logQueue?.Dispose();
                     _cancellationTokenSource?.Dispose();
                 }
