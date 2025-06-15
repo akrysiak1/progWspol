@@ -49,6 +49,59 @@ namespace TP.ConcurrentProgramming.Presentation.Model.Test
       }
     }
 
+    [TestMethod]
+    public void UpdateBorderSizeTestMethod()
+    {
+      UnderneathLayerFixture underneathLayerFixture = new UnderneathLayerFixture();
+      using (ModelImplementation newInstance = new(underneathLayerFixture))
+      {
+        double newSize = 500;
+        newInstance.UpdateBorderSize(newSize);
+        Assert.AreEqual(newSize, underneathLayerFixture.LastBorderSize);
+      }
+    }
+
+    [TestMethod]
+    public void BallCreationTestMethod()
+    {
+      UnderneathLayerFixture underneathLayerFixture = new UnderneathLayerFixture();
+      using (ModelImplementation newInstance = new(underneathLayerFixture))
+      {
+        bool ballCreated = false;
+        IBall? createdBall = null;
+        newInstance.BallChanged += (sender, args) =>
+        {
+          ballCreated = true;
+          createdBall = args.Ball;
+        };
+
+        // Start the model to create a ball
+        newInstance.Start(1);
+        Thread.Sleep(100); // Give time for the event to be processed
+
+        Assert.IsTrue(ballCreated, "Ball creation event was not raised");
+        Assert.IsNotNull(createdBall, "Created ball is null");
+      }
+    }
+
+    [TestMethod]
+    public void SubscriptionTestMethod()
+    {
+      UnderneathLayerFixture underneathLayerFixture = new UnderneathLayerFixture();
+      using (ModelImplementation newInstance = new(underneathLayerFixture))
+      {
+        int notificationCount = 0;
+        var subscription = newInstance.Subscribe(ball => notificationCount++);
+
+        // Start the model to create balls
+        newInstance.Start(2);
+        Thread.Sleep(100); // Give time for events to be processed
+
+        Assert.AreEqual(2, notificationCount, "Expected 2 notifications but got " + notificationCount);
+        subscription.Dispose();
+      }
+    }
+
     #region testing instrumentation
 
     private class UnderneathLayerFixture : BusinessLogicAbstractAPI
@@ -57,6 +110,8 @@ namespace TP.ConcurrentProgramming.Presentation.Model.Test
 
       internal bool Disposed = false;
       internal int NumberOfBalls = 0;
+      internal double LastBorderSize = 0;
+      internal Action<BusinessLogic.IPosition, BusinessLogic.IBall>? BallCreationHandler;
 
       #endregion testing instrumentation
 
@@ -70,15 +125,41 @@ namespace TP.ConcurrentProgramming.Presentation.Model.Test
       public override void Start(int numberOfBalls, Action<IPosition, BusinessLogic.IBall> upperLayerHandler)
       {
         NumberOfBalls = numberOfBalls;
+        BallCreationHandler = upperLayerHandler;
         Assert.IsNotNull(upperLayerHandler);
+
+        // Simulate ball creation
+        for (int i = 0; i < numberOfBalls; i++)
+        {
+          var mockBall = new MockBall();
+          var position = new MockPosition(100, 100);
+          upperLayerHandler(position, mockBall);
+        }
       }
 
       public override void UpdateBorderSize(double size)
       {
-        // No implementation needed for test fixture
+        LastBorderSize = size;
       }
 
       #endregion BusinessLogicAbstractAPI
+
+      private class MockBall : BusinessLogic.IBall
+      {
+        public event EventHandler<BusinessLogic.IPosition>? NewPositionNotification;
+      }
+    }
+
+    private class MockPosition : BusinessLogic.IPosition
+    {
+      public double x { get; init; }
+      public double y { get; init; }
+
+      public MockPosition(double x, double y)
+      {
+        this.x = x;
+        this.y = y;
+      }
     }
 
     #endregion testing instrumentation

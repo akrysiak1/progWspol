@@ -8,6 +8,10 @@
 //
 //_____________________________________________________________________________________________________________________________________
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using TP.ConcurrentProgramming.Data;
+
 namespace TP.ConcurrentProgramming.Data.Test
 {
   [TestClass]
@@ -19,8 +23,21 @@ namespace TP.ConcurrentProgramming.Data.Test
       DataAbstractAPI instance1 = DataAbstractAPI.GetDataLayer();
       DataAbstractAPI instance2 = DataAbstractAPI.GetDataLayer();
       Assert.AreSame<DataAbstractAPI>(instance1, instance2);
+      
+      // Check initial state
+      bool isDisposed = false;
+      ((DataImplementation)instance1).CheckObjectDisposed(x => isDisposed = x);
+      Assert.IsFalse(isDisposed);
+
+      // First dispose
       instance1.Dispose();
-      Assert.ThrowsException<ObjectDisposedException>(() => instance2.Dispose());
+      ((DataImplementation)instance1).CheckObjectDisposed(x => isDisposed = x);
+      Assert.IsTrue(isDisposed);
+
+      // Second dispose should not throw
+      instance2.Dispose();
+      ((DataImplementation)instance2).CheckObjectDisposed(x => isDisposed = x);
+      Assert.IsTrue(isDisposed);
     }
   }
 }

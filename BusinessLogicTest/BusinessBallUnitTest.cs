@@ -17,12 +17,20 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
   [TestClass]
   public class BusinessBallUnitTest
   {
+    [TestInitialize]
+    public void Initialize()
+    {
+      // Set default border size for tests
+      Ball.SetBorderSize(400);
+    }
+
     [TestMethod]
     public void BallConstructorTest()
     {
       MockDataBall dataBall = new MockDataBall();
       Ball ball = new Ball(dataBall);
       Assert.IsNotNull(ball);
+      Assert.AreEqual(Ball.GetBallRadius(), 400 * 0.025); // Check if radius is calculated correctly
     }
 
     [TestMethod]
@@ -31,11 +39,19 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
       MockDataBall dataBall = new MockDataBall();
       Ball ball = new Ball(dataBall);
       bool positionUpdated = false;
-      ball.NewPositionNotification += (sender, position) => positionUpdated = true;
+      IPosition? lastPosition = null;
+      ball.NewPositionNotification += (sender, position) => 
+      {
+        positionUpdated = true;
+        lastPosition = position;
+      };
 
       // Simulate position update
       dataBall.SimulatePositionUpdate(new Vector(150, 150));
       Assert.IsTrue(positionUpdated);
+      Assert.IsNotNull(lastPosition);
+      Assert.AreEqual(150, lastPosition.x);
+      Assert.AreEqual(150, lastPosition.y);
     }
 
     [TestMethod]
@@ -46,12 +62,18 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
       IPosition? lastPosition = null;
       ball.NewPositionNotification += (sender, position) => lastPosition = position;
 
-      // Set initial position near border
-      dataBall.Velocity = new Vector(-10, 0); // Moving left
-      dataBall.SimulatePositionUpdate(new Vector(10, 100)); // Near left border
-
+      // Test left border collision
+      dataBall.Velocity = new Vector(-10, 0);
+      dataBall.SimulatePositionUpdate(new Vector(5, 100));
       Assert.IsNotNull(lastPosition);
-      Assert.IsTrue(lastPosition.x >= Ball.GetBallRadius()); // Should not go beyond border
+      Assert.IsTrue(lastPosition.x >= Ball.GetBallRadius());
+      Assert.IsTrue(dataBall.Velocity.x > 0); // Velocity should be reversed
+
+      // Test right border collision
+      dataBall.Velocity = new Vector(10, 0);
+      dataBall.SimulatePositionUpdate(new Vector(395, 100));
+      Assert.IsTrue(lastPosition.x <= 400 - Ball.GetBallRadius());
+      Assert.IsTrue(dataBall.Velocity.x < 0); // Velocity should be reversed
     }
 
     [TestMethod]
@@ -62,7 +84,6 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
       Ball ball1 = new Ball(dataBall1);
       Ball ball2 = new Ball(dataBall2);
 
-      // Position balls very close to each other to ensure collision
       double ballRadius = Ball.GetBallRadius();
       
       // Set initial positions
@@ -73,9 +94,17 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
       dataBall1.Velocity = new Vector(10, 0);
       dataBall2.Velocity = new Vector(-10, 0);
 
+      // Calculate initial energy
+      double initialEnergy = dataBall1.Velocity.x * dataBall1.Velocity.x + 
+                           dataBall2.Velocity.x * dataBall2.Velocity.x;
+
       // Simulate movement that will cause collision
-      dataBall1.SimulatePositionUpdate(new Vector(100 + 5, 100)); // Move ball1 right
-      dataBall2.SimulatePositionUpdate(new Vector(100 + 2.1 * ballRadius - 5, 100)); // Move ball2 left
+      dataBall1.SimulatePositionUpdate(new Vector(100 + 5, 100));
+      dataBall2.SimulatePositionUpdate(new Vector(100 + 2.1 * ballRadius - 5, 100));
+
+      // Calculate final energy
+      double finalEnergy = dataBall1.Velocity.x * dataBall1.Velocity.x + 
+                          dataBall2.Velocity.x * dataBall2.Velocity.x;
 
       // Verify velocities changed after collision
       Assert.AreNotEqual(10, dataBall1.Velocity.x, "Ball 1 velocity should change after collision");
@@ -84,6 +113,28 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
       // Verify that the total momentum is conserved
       double totalMomentumX = dataBall1.Velocity.x + dataBall2.Velocity.x;
       Assert.AreEqual(0, totalMomentumX, 0.001, "Total momentum should be conserved");
+
+      // Verify energy conservation (allowing for small numerical errors)
+      Assert.AreEqual(initialEnergy, finalEnergy, 0.001, "Energy should be conserved");
+    }
+
+    [TestMethod]
+    public void BorderSizeChangeTest()
+    {
+      // Test changing border size
+      Ball.SetBorderSize(500);
+      Assert.AreEqual(500 * 0.025, Ball.GetBallRadius(), "Ball radius should update with border size");
+
+      // Test ball behavior with new border size
+      MockDataBall dataBall = new MockDataBall();
+      Ball ball = new Ball(dataBall);
+      IPosition? lastPosition = null;
+      ball.NewPositionNotification += (sender, position) => lastPosition = position;
+
+      // Test right border collision with new size
+      dataBall.Velocity = new Vector(10, 0);
+      dataBall.SimulatePositionUpdate(new Vector(495, 100));
+      Assert.IsTrue(lastPosition.x <= 500 - Ball.GetBallRadius());
     }
 
     private class MockDataBall : Data.IBall

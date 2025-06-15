@@ -8,6 +8,12 @@
 //
 //_____________________________________________________________________________________________________________________________________
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using TP.ConcurrentProgramming.Data;
+
 namespace TP.ConcurrentProgramming.Data.Test
 {
   [TestClass]
@@ -34,15 +40,27 @@ namespace TP.ConcurrentProgramming.Data.Test
       bool newInstanceDisposed = false;
       newInstance.CheckObjectDisposed(x => newInstanceDisposed = x);
       Assert.IsFalse(newInstanceDisposed);
-      newInstance.Dispose();
-      newInstance.CheckObjectDisposed(x => newInstanceDisposed = x);
-      Assert.IsTrue(newInstanceDisposed);
+
+      // Check balls list before disposal
       IEnumerable<IBall>? ballsList = null;
       newInstance.CheckBallsList(x => ballsList = x);
       Assert.IsNotNull(ballsList);
-      newInstance.CheckNumberOfBalls(x => Assert.AreEqual<int>(0, x));
-      Assert.ThrowsException<ObjectDisposedException>(() => newInstance.Dispose());
-      Assert.ThrowsException<ObjectDisposedException>(() => newInstance.Start(0, (position, ball) => { }));
+      Assert.AreEqual(0, ballsList.Count());
+
+      // First dispose
+      newInstance.Dispose();
+      newInstance.CheckObjectDisposed(x => newInstanceDisposed = x);
+      Assert.IsTrue(newInstanceDisposed);
+
+      // Second dispose should be allowed but not change the state
+      newInstance.Dispose();
+      newInstance.CheckObjectDisposed(x => newInstanceDisposed = x);
+      Assert.IsTrue(newInstanceDisposed);
+
+      // After disposal, Start should return silently
+      int callbackCount = 0;
+      newInstance.Start(5, (position, ball) => callbackCount++);
+      Assert.AreEqual(0, callbackCount, "Start should not create any balls when disposed");
     }
 
     [TestMethod]
