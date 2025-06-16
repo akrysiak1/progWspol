@@ -1,0 +1,11 @@
+{"Timestamp":"2025-06-16T15:12:10.2222501+02:00","EventType":0,"ThreadId":4,"Position":{"x":0,"y":0},"Velocity":{"x":0,"y":0}}
+{"Timestamp":"2025-06-16T15:12:10.2322297+02:00","EventType":0,"ThreadId":4,"Position":{"x":10,"y":10},"Velocity":{"x":1,"y":1}}
+{"Timestamp":"2025-06-16T15:12:10.3437909+02:00","EventType":1,"ThreadId":4,"Position":{"x":20.88886,"y":20.88886},"Velocity":{"x":1,"y":1}}
+{"Timestamp":"2025-06-16T15:12:10.3446+02:00","EventType":0,"ThreadId":4,"Position":{"x":10,"y":10},"Velocity":{"x":1,"y":1}}
+{"Timestamp":"2025-06-16T15:12:10.3446072+02:00","EventType":1,"ThreadId":4,"Position":{"x":10,"y":10},"Velocity":{"x":1,"y":1}}
+{"Timestamp":"2025-06-16T15:12:10.4553011+02:00","EventType":0,"ThreadId":4,"Position":{"x":10,"y":10},"Velocity":{"x":1,"y":1}}
+{"Timestamp":"2025-06-16T15:12:10.4558137+02:00","EventType":1,"ThreadId":4,"Position":{"x":10,"y":10},"Velocity":{"x":2,"y":2}}
+{"Timestamp":"2025-06-16T15:12:11.814284+02:00","EventType":2,"ThreadId":4,"Position":{"x":5,"y":100},"Velocity":{"x":10,"y":0}}
+{"Timestamp":"2025-06-16T15:12:11.8151533+02:00","EventType":3,"ThreadId":4,"Position":{"x":395,"y":100},"Velocity":{"x":-10,"y":0}}
+{"Timestamp":"2025-06-16T15:12:11.824697+02:00","EventType":6,"ThreadId":4,"Position":{"x":105,"y":100},"Velocity":{"x":-10,"y":0}}
+{"Timestamp":"2025-06-16T15:12:11.8288208+02:00","EventType":3,"ThreadId":4,"Position":{"x":495,"y":100},"Velocity":{"x":-10,"y":0}}

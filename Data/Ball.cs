@@ -33,7 +33,7 @@ namespace TP.ConcurrentProgramming.Data
             _moveTimer.Start();
             
             // Log ball creation
-            IDataLogger.CreateDefault().Log("BallCreated", Thread.CurrentThread.ManagedThreadId, _position, _velocity);
+            IDataLogger.CreateDefault().Log(LogEventType.BallCreated, Thread.CurrentThread.ManagedThreadId, _position, _velocity);
         }
 
         #endregion ctor
@@ -144,7 +144,7 @@ namespace TP.ConcurrentProgramming.Data
             _moveTimer.Stop();
             _moveTimer.Dispose();
             // Log ball stop
-            IDataLogger.CreateDefault().Log("BallStopped", Thread.CurrentThread.ManagedThreadId, Position, Velocity).ConfigureAwait(false);
+            IDataLogger.CreateDefault().Log(LogEventType.BallStopped, Thread.CurrentThread.ManagedThreadId, Position, Velocity).ConfigureAwait(false);
         }
 
         #endregion private

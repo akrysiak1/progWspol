@@ -67,26 +67,26 @@ namespace TP.ConcurrentProgramming.BusinessLogic
                 {
                     newX = BALL_RADIUS;
                     dataBall.Velocity = new Data.Vector(-dataBall.Velocity.x, dataBall.Velocity.y);
-                    logger.Log("LeftBorderCollision", Thread.CurrentThread.ManagedThreadId, dataBall.Position, dataBall.Velocity);
+                    logger.Log(LogEventType.LeftBorderCollision, Thread.CurrentThread.ManagedThreadId, dataBall.Position, dataBall.Velocity);
                 }
                 else if (newX + BALL_RADIUS > BORDER_WIDTH - EPSILON && dataBall.Velocity.x > 0)
                 {
                     newX = BORDER_WIDTH - BALL_RADIUS;
                     dataBall.Velocity = new Data.Vector(-dataBall.Velocity.x, dataBall.Velocity.y);
-                    logger.Log("RightBorderCollision", Thread.CurrentThread.ManagedThreadId, dataBall.Position, dataBall.Velocity);
+                    logger.Log(LogEventType.RightBorderCollision, Thread.CurrentThread.ManagedThreadId, dataBall.Position, dataBall.Velocity);
                 }
 
                 if (newY - BALL_RADIUS < 0 + EPSILON && dataBall.Velocity.y < 0)
                 {
                     newY = BALL_RADIUS;
                     dataBall.Velocity = new Data.Vector(dataBall.Velocity.x, -dataBall.Velocity.y);
-                    logger.Log("TopBorderCollision", Thread.CurrentThread.ManagedThreadId, dataBall.Position, dataBall.Velocity);
+                    logger.Log(LogEventType.TopBorderCollision, Thread.CurrentThread.ManagedThreadId, dataBall.Position, dataBall.Velocity);
                 }
                 else if (newY + BALL_RADIUS > BORDER_HEIGHT - EPSILON && dataBall.Velocity.y > 0)
                 {
                     newY = BORDER_HEIGHT - BALL_RADIUS;
                     dataBall.Velocity = new Data.Vector(dataBall.Velocity.x, -dataBall.Velocity.y);
-                    logger.Log("BottomBorderCollision", Thread.CurrentThread.ManagedThreadId, dataBall.Position, dataBall.Velocity);
+                    logger.Log(LogEventType.BottomBorderCollision, Thread.CurrentThread.ManagedThreadId, dataBall.Position, dataBall.Velocity);
                 }
 
                 // Ball-to-ball collisions
@@ -170,7 +170,7 @@ namespace TP.ConcurrentProgramming.BusinessLogic
                         otherBall.dataBall.Velocity = new Data.Vector(newVx2, newVy2);
 
                         // Log the collision
-                        logger.Log("BallCollision", Thread.CurrentThread.ManagedThreadId, dataBall.Position, dataBall.Velocity);
+                        logger.Log(LogEventType.BallCollision, Thread.CurrentThread.ManagedThreadId, dataBall.Position, dataBall.Velocity);
 
                         // Separate balls slightly to avoid overlap
                         double overlap = 2 * VISUAL_RADIUS - distance;

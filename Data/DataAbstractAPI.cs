@@ -64,7 +64,7 @@ namespace TP.ConcurrentProgramming.Data
 
     public interface IDataLogger
     {
-        Task Log(string message, int threadId, IVector position, IVector velocity);
+        Task Log(LogEventType eventType, int threadId, IVector position, IVector velocity);
         Task Flush();
         Task WaitForFlush();
         void Stop();

@@ -5,6 +5,18 @@ using System.Threading.Tasks;
 
 namespace TP.ConcurrentProgramming.Data
 {
+    public enum LogEventType
+    {
+        BallCreated,
+        BallStopped,
+        LeftBorderCollision,
+        RightBorderCollision,
+        TopBorderCollision,
+        BottomBorderCollision,
+        BallCollision,
+        Error
+    }
+
     public class DataLogger : IDataLogger, IDisposable
     {
         private static readonly Lazy<DataLogger> _singletonInstance = new Lazy<DataLogger>(() => new DataLogger("../../../../Data/logs/balls_logs.json"));
@@ -48,7 +60,7 @@ namespace TP.ConcurrentProgramming.Data
                         }
                         catch (Exception ex)
                         {
-                            await Log("Error writing log entry: " + ex.Message, Thread.CurrentThread.ManagedThreadId, new Vector(0, 0), new Vector(0, 0));
+                            await Log(LogEventType.Error, Thread.CurrentThread.ManagedThreadId, new Vector(0, 0), new Vector(0, 0));
                         }
                     }
                     else
@@ -72,20 +84,20 @@ namespace TP.ConcurrentProgramming.Data
             }
         }
 
-        public async Task Log(string message, int threadId, IVector position, IVector velocity)
+        public async Task Log(LogEventType eventType, int threadId, IVector position, IVector velocity)
         {
             if (!_isLoggingActive || _disposed)
                 return;
 
             try
             {
-                BallLogEntry logEntry = new BallLogEntry(DateTime.Now, message, threadId, position, velocity);
+                BallLogEntry logEntry = new BallLogEntry(DateTime.Now, eventType, threadId, position, velocity);
                 _logQueue.Add(logEntry);
             }
             catch (InvalidOperationException)
             {
                 // Queue is full
-                await Log("Log entry was not logged - buffer is full", Thread.CurrentThread.ManagedThreadId, new Vector(0, 0), new Vector(0, 0));
+                await Log(LogEventType.Error, Thread.CurrentThread.ManagedThreadId, new Vector(0, 0), new Vector(0, 0));
             }
         }
 
@@ -153,15 +165,15 @@ namespace TP.ConcurrentProgramming.Data
         internal class BallLogEntry
         {
             public DateTime Timestamp { get; set; }
-            public string Message { get; set; }
+            public LogEventType EventType { get; set; }
             public int ThreadId { get; set; }
             public IVector Position { get; set; }
             public IVector Velocity { get; set; }
 
-            internal BallLogEntry(DateTime timestamp, string message, int threadId, IVector position, IVector velocity)
+            internal BallLogEntry(DateTime timestamp, LogEventType eventType, int threadId, IVector position, IVector velocity)
             {
                 Timestamp = timestamp;
-                Message = message;
+                EventType = eventType;
                 Position = position;
                 Velocity = velocity;
                 ThreadId = threadId;
